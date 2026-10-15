@@ -51,25 +51,24 @@ async function listCustomers(req: Request): Promise<Response> {
 
   const [{ count }] = await db.sql<{ count: number }>`SELECT count(*)::int AS count FROM customers`;
 
+  // Customers without a name sort last (NULLs come last in ascending order).
   let rows: CustomerListItem[];
   if (q === "") {
     rows = await db.sql<CustomerListItem>`
-      SELECT id, name, english_name, korean_name, birth_year,
+      SELECT id, name, birth_year,
              left(notes, 200) AS notes_preview, created_at, updated_at
       FROM customers
       ORDER BY lower(name), created_at
       LIMIT 1001`;
   } else {
-    // Partial, case-insensitive match across all four searchable fields.
+    // Partial, case-insensitive match on name and notes.
     // The user text is passed as a bound parameter and LIKE wildcards are escaped.
     const pattern = `%${escapeLike(q)}%`;
     rows = await db.sql<CustomerListItem>`
-      SELECT id, name, english_name, korean_name, birth_year,
+      SELECT id, name, birth_year,
              left(notes, 200) AS notes_preview, created_at, updated_at
       FROM customers
       WHERE name ILIKE ${pattern}
-         OR english_name ILIKE ${pattern}
-         OR korean_name ILIKE ${pattern}
          OR notes ILIKE ${pattern}
       ORDER BY lower(name), created_at
       LIMIT 1001`;
@@ -82,7 +81,7 @@ async function listCustomers(req: Request): Promise<Response> {
 async function getCustomer(id: string): Promise<Response> {
   const db = getDatabase();
   const rows = await db.sql<Customer>`
-    SELECT id, name, english_name, korean_name, birth_year, notes, created_at, updated_at
+    SELECT id, name, birth_year, notes, created_at, updated_at
     FROM customers
     WHERE id = ${id}::uuid`;
   if (rows.length === 0) throw new HttpError(404, "Customer not found.");
@@ -96,9 +95,9 @@ async function createCustomer(req: Request): Promise<Response> {
 
   const db = getDatabase();
   const rows = await db.sql<Customer>`
-    INSERT INTO customers (name, english_name, korean_name, birth_year, notes)
-    VALUES (${c.name}, ${c.english_name}, ${c.korean_name}, ${c.birth_year}, ${c.notes})
-    RETURNING id, name, english_name, korean_name, birth_year, notes, created_at, updated_at`;
+    INSERT INTO customers (name, birth_year, notes)
+    VALUES (${c.name}, ${c.birth_year}, ${c.notes})
+    RETURNING id, name, birth_year, notes, created_at, updated_at`;
   return json(rows[0], 201);
 }
 
@@ -111,13 +110,11 @@ async function updateCustomer(req: Request, id: string): Promise<Response> {
   const rows = await db.sql<Customer>`
     UPDATE customers
     SET name = ${c.name},
-        english_name = ${c.english_name},
-        korean_name = ${c.korean_name},
         birth_year = ${c.birth_year},
         notes = ${c.notes},
         updated_at = now()
     WHERE id = ${id}::uuid
-    RETURNING id, name, english_name, korean_name, birth_year, notes, created_at, updated_at`;
+    RETURNING id, name, birth_year, notes, created_at, updated_at`;
   if (rows.length === 0) throw new HttpError(404, "Customer not found.");
   return json(rows[0]);
 }

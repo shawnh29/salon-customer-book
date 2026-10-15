@@ -1,9 +1,7 @@
 export interface Customer {
   id: string;
-  name: string;
-  english_name: string | null;
-  korean_name: string | null;
-  birth_year: number;
+  name: string | null;
+  birth_year: number | null;
   notes: string | null;
   created_at: string;
   updated_at: string;

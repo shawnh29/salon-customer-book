@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getCustomer } from "../api";
 import { formatBirthYear } from "../shared/age";
+import { displayName } from "../shared/customer";
 import type { Customer } from "../types";
 import Modal from "./Modal";
 
@@ -34,7 +35,7 @@ export default function CustomerDetail({ customerId, onEdit, onDelete, onClose }
   }, [customerId]);
 
   return (
-    <Modal title={customer ? customer.name : "Customer"} onRequestClose={onClose}>
+    <Modal title={customer ? displayName(customer.name) : "Customer"} onRequestClose={onClose}>
       {!customer && !error && (
         <p className="status" role="status">
           <span className="spinner" aria-hidden="true" /> Loading customer…
@@ -52,19 +53,17 @@ export default function CustomerDetail({ customerId, onEdit, onDelete, onClose }
           <dl className="details">
             <div>
               <dt>Name</dt>
-              <dd>{customer.name}</dd>
-            </div>
-            <div>
-              <dt>English name</dt>
-              <dd>{customer.english_name ?? <span className="muted">—</span>}</dd>
-            </div>
-            <div>
-              <dt>Korean name</dt>
-              <dd lang="ko">{customer.korean_name ?? <span className="muted">—</span>}</dd>
+              <dd>{customer.name ?? <span className="muted">—</span>}</dd>
             </div>
             <div>
               <dt>Year of Birth</dt>
-              <dd>{formatBirthYear(customer.birth_year)}</dd>
+              <dd>
+                {customer.birth_year === null ? (
+                  <span className="muted">—</span>
+                ) : (
+                  formatBirthYear(customer.birth_year)
+                )}
+              </dd>
             </div>
             <div>
               <dt>Notes</dt>
@@ -90,7 +89,7 @@ export default function CustomerDetail({ customerId, onEdit, onDelete, onClose }
             <button
               type="button"
               className="btn btn-danger"
-              onClick={() => onDelete({ id: customer.id, name: customer.name })}
+              onClick={() => onDelete({ id: customer.id, name: displayName(customer.name) })}
             >
               Delete
             </button>

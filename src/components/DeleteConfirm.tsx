@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { deleteCustomer } from "../api";
-import type { Customer } from "../types";
 import Modal from "./Modal";
 
 interface Props {
-  customer: Pick<Customer, "id" | "name">;
+  /** `name` is the display name (already falls back to "Unnamed customer"). */
+  customer: { id: string; name: string };
   onDeleted: (name: string) => void;
   onClose: () => void;
 }

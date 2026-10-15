@@ -14,7 +14,8 @@ export function formatAge(birthYear: number): string {
   return `${age} ${age === 1 ? "year" : "years"} old`;
 }
 
-/** e.g. "1995 (31 years old)" */
-export function formatBirthYear(birthYear: number): string {
+/** e.g. "1995 (31 years old)". Year of birth is optional, so null is allowed. */
+export function formatBirthYear(birthYear: number | null): string {
+  if (birthYear === null) return "Not provided";
   return `${birthYear} (${formatAge(birthYear)})`;
 }

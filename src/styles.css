@@ -258,10 +258,10 @@ p {
   overflow-wrap: anywhere;
 }
 
-.card-alt {
-  margin: 0.15rem 0 0;
+.card-name.unnamed {
   color: var(--muted);
-  overflow-wrap: anywhere;
+  font-style: italic;
+  font-weight: 500;
 }
 
 .card-year {

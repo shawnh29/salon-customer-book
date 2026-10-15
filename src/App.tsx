@@ -4,14 +4,14 @@ import CustomerDetail from "./components/CustomerDetail";
 import CustomerForm from "./components/CustomerForm";
 import DeleteConfirm from "./components/DeleteConfirm";
 import { formatBirthYear } from "./shared/age";
-import { nfc } from "./shared/customer";
+import { displayName, nfc } from "./shared/customer";
 import type { Customer, CustomerListResponse } from "./types";
 
 type ModalState =
   | { kind: "none" }
   | { kind: "view"; id: string }
   | { kind: "form"; id: string | null }
-  | { kind: "delete"; customer: Pick<Customer, "id" | "name"> };
+  | { kind: "delete"; customer: { id: string; name: string } };
 
 interface Toast {
   type: "success" | "error";
@@ -74,7 +74,10 @@ export default function App() {
 
   function handleSaved(c: Customer, mode: "created" | "updated") {
     setModal({ kind: "none" });
-    setToast({ type: "success", text: `${c.name} was ${mode === "created" ? "added" : "updated"}.` });
+    setToast({
+      type: "success",
+      text: `${displayName(c.name)} was ${mode === "created" ? "added" : "updated"}.`,
+    });
     setReloadKey((k) => k + 1);
   }
 
@@ -149,8 +152,8 @@ export default function App() {
           )}
         </div>
         <p className="field-help search-hint">
-          Search finds names and notes exactly as saved. English and Korean spellings are not translated
-          into each other, so save both names on a customer if you want either one to match.
+          Search finds part of a name or notes exactly as saved. English and Korean are not translated into
+          each other.
         </p>
 
         {searching && data && !error && (
@@ -207,15 +210,12 @@ export default function App() {
             {data.customers.map((c) => (
               <li key={c.id} className="card">
                 <div className="card-main">
-                  <h2 className="card-name">{c.name}</h2>
-                  {(c.english_name || c.korean_name) && (
-                    <p className="card-alt">
-                      {c.english_name && <span>{c.english_name}</span>}
-                      {c.english_name && c.korean_name && <span aria-hidden="true"> · </span>}
-                      {c.korean_name && <span lang="ko">{c.korean_name}</span>}
-                    </p>
-                  )}
-                  <p className="card-year">{formatBirthYear(c.birth_year)}</p>
+                  <h2 className={c.name === null ? "card-name unnamed" : "card-name"}>
+                    {displayName(c.name)}
+                  </h2>
+                  <p className={c.birth_year === null ? "card-year muted" : "card-year"}>
+                    {formatBirthYear(c.birth_year)}
+                  </p>
                   {c.notes_preview && <p className="card-notes">{c.notes_preview}</p>}
                 </div>
                 <div className="card-actions">
@@ -223,7 +223,7 @@ export default function App() {
                     type="button"
                     className="btn btn-small btn-secondary"
                     onClick={() => setModal({ kind: "view", id: c.id })}
-                    aria-label={`View ${c.name}`}
+                    aria-label={`View ${displayName(c.name)}`}
                   >
                     View
                   </button>
@@ -231,15 +231,17 @@ export default function App() {
                     type="button"
                     className="btn btn-small btn-secondary"
                     onClick={() => setModal({ kind: "form", id: c.id })}
-                    aria-label={`Edit ${c.name}`}
+                    aria-label={`Edit ${displayName(c.name)}`}
                   >
                     Edit
                   </button>
                   <button
                     type="button"
                     className="btn btn-small btn-danger"
-                    onClick={() => setModal({ kind: "delete", customer: { id: c.id, name: c.name } })}
-                    aria-label={`Delete ${c.name}`}
+                    onClick={() =>
+                      setModal({ kind: "delete", customer: { id: c.id, name: displayName(c.name) } })
+                    }
+                    aria-label={`Delete ${displayName(c.name)}`}
                   >
                     Delete
                   </button>

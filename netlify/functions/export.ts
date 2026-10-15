@@ -9,10 +9,8 @@ export const config: Config = {
 };
 
 interface Row {
-  name: string;
-  english_name: string | null;
-  korean_name: string | null;
-  birth_year: number;
+  name: string | null;
+  birth_year: number | null;
   notes: string | null;
   created_at: Date | string;
   updated_at: Date | string;
@@ -43,14 +41,12 @@ export default async (req: Request): Promise<Response> => {
   try {
     const db = getDatabase();
     const rows = await db.sql<Row>`
-      SELECT name, english_name, korean_name, birth_year, notes, created_at, updated_at
+      SELECT name, birth_year, notes, created_at, updated_at
       FROM customers
       ORDER BY lower(name), created_at`;
 
     const header = [
       "Name",
-      "English Name",
-      "Korean Name",
       "Year of Birth",
       "Age (estimate at export)",
       "Notes",
@@ -63,10 +59,8 @@ export default async (req: Request): Promise<Response> => {
       lines.push(
         [
           textCell(r.name),
-          textCell(r.english_name),
-          textCell(r.korean_name),
-          plainCell(r.birth_year),
-          plainCell(calcAge(r.birth_year)),
+          plainCell(r.birth_year ?? ""),
+          plainCell(r.birth_year === null ? "" : calcAge(r.birth_year)),
           textCell(r.notes),
           plainCell(iso(r.created_at)),
           plainCell(iso(r.updated_at)),

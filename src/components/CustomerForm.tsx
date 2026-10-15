@@ -14,20 +14,16 @@ interface Props {
 
 interface Values {
   name: string;
-  english_name: string;
-  korean_name: string;
   birth_year: string;
   notes: string;
 }
 
-const EMPTY: Values = { name: "", english_name: "", korean_name: "", birth_year: "", notes: "" };
+const EMPTY: Values = { name: "", birth_year: "", notes: "" };
 
 function toValues(c: Customer): Values {
   return {
-    name: c.name,
-    english_name: c.english_name ?? "",
-    korean_name: c.korean_name ?? "",
-    birth_year: String(c.birth_year),
+    name: c.name ?? "",
+    birth_year: c.birth_year === null ? "" : String(c.birth_year),
     notes: c.notes ?? "",
   };
 }
@@ -96,9 +92,7 @@ export default function CustomerForm({ customerId, onSaved, onClose }: Props) {
     if (!result.ok) {
       setErrors(result.errors);
       setServerError(null);
-      const first = (["name", "english_name", "korean_name", "birth_year", "notes"] as const).find(
-        (f) => result.errors[f],
-      );
+      const first = (["name", "birth_year", "notes"] as const).find((f) => result.errors[f]);
       if (first) formRef.current?.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
       return;
     }
@@ -161,9 +155,7 @@ export default function CustomerForm({ customerId, onSaved, onClose }: Props) {
         )}
 
         <div className="field">
-          <label htmlFor="f-name">
-            Name <span className="req">(required)</span>
-          </label>
+          <label htmlFor="f-name">Name</label>
           <input
             id="f-name"
             name="name"
@@ -172,7 +164,6 @@ export default function CustomerForm({ customerId, onSaved, onClose }: Props) {
             onChange={(e) => setField("name", e.target.value)}
             autoComplete="off"
             autoFocus
-            required
             aria-invalid={errors.name ? true : undefined}
             aria-describedby={errors.name ? "f-name-err" : undefined}
           />
@@ -183,52 +174,8 @@ export default function CustomerForm({ customerId, onSaved, onClose }: Props) {
           )}
         </div>
 
-        <div className="field-row">
-          <div className="field">
-            <label htmlFor="f-english">English name</label>
-            <input
-              id="f-english"
-              name="english_name"
-              type="text"
-              value={values.english_name}
-              onChange={(e) => setField("english_name", e.target.value)}
-              autoComplete="off"
-              spellCheck={false}
-              aria-invalid={errors.english_name ? true : undefined}
-              aria-describedby={errors.english_name ? "f-english-err" : undefined}
-            />
-            {errors.english_name && (
-              <p id="f-english-err" className="field-error">
-                {errors.english_name}
-              </p>
-            )}
-          </div>
-          <div className="field">
-            <label htmlFor="f-korean">Korean name (한글)</label>
-            <input
-              id="f-korean"
-              name="korean_name"
-              type="text"
-              lang="ko"
-              value={values.korean_name}
-              onChange={(e) => setField("korean_name", e.target.value)}
-              autoComplete="off"
-              spellCheck={false}
-              aria-invalid={errors.korean_name ? true : undefined}
-              aria-describedby={errors.korean_name ? "f-korean-err" : undefined}
-            />
-            {errors.korean_name && (
-              <p id="f-korean-err" className="field-error">
-                {errors.korean_name}
-              </p>
-            )}
-          </div>
-        </div>
-
         <div className="field">
-          <label htmlFor="f-year">
-            Year of Birth <span className="req">(required)</span>
-          </label>
+          <label htmlFor="f-year">Year of Birth</label>
           <input
             id="f-year"
             name="birth_year"
@@ -241,7 +188,6 @@ export default function CustomerForm({ customerId, onSaved, onClose }: Props) {
             onChange={(e) => setField("birth_year", e.target.value.replace(/\D/g, ""))}
             autoComplete="off"
             className="input-year"
-            required
             aria-invalid={errors.birth_year ? true : undefined}
             aria-describedby="f-year-help"
           />
@@ -249,7 +195,7 @@ export default function CustomerForm({ customerId, onSaved, onClose }: Props) {
             {errors.birth_year ??
               (yearOk
                 ? `Will show as ${formatBirthYear(Number(values.birth_year))}. Age is an estimate: this year minus the year of birth.`
-                : "Four digits. Age is an estimate: this year minus the year of birth.")}
+                : "Optional. Four digits. Age is an estimate: this year minus the year of birth.")}
           </p>
         </div>
 
